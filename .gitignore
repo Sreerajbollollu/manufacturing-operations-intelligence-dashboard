@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+backend/ml/saved_models/*.pkl
+backend/ml/saved_models/*.joblib
+
+# Node
+node_modules/
+dist/
+.DS_Store
+*.local
+
+# Environment
+.env
+backend/.env
+frontend/.env
+*.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
