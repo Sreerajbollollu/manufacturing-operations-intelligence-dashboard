@@ -1,31 +1,35 @@
 import pg from "pg";
 
-const { Pool } = pg;
+const { Client } = pg;
 
-let pool;
-
-export function getPool() {
+export function getDatabaseUrl() {
   if (!process.env.DATABASE_URL) {
     const error = new Error("DATABASE_URL is not configured");
     error.name = "DatabaseConfigError";
     throw error;
   }
 
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-      max: 5,
-      idleTimeoutMillis: 10_000,
-      connectionTimeoutMillis: 5_000,
-    });
-  }
+  return process.env.DATABASE_URL;
+}
 
-  return pool;
+function createClient() {
+  return new Client({
+    connectionString: getDatabaseUrl(),
+    ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 5_000,
+    query_timeout: 15_000,
+    statement_timeout: 15_000,
+  });
 }
 
 export async function query(text, params = []) {
-  return getPool().query(text, params);
+  const client = createClient();
+  await client.connect();
+  try {
+    return await client.query({ text, values: params });
+  } finally {
+    await client.end().catch(() => {});
+  }
 }
 
 export function sendJson(res, status, body) {
@@ -58,6 +62,31 @@ export function safeDiagnosticMessage(error) {
     .slice(0, 80);
 }
 
+export function databaseUrlDiagnostics() {
+  try {
+    const url = new URL(getDatabaseUrl());
+    const host = url.hostname.toLowerCase();
+    const username = decodeURIComponent(url.username || "");
+    const port = url.port || "unknown";
+
+    return {
+      host_type: host.includes("pooler.supabase.com")
+        ? "pooler"
+        : host.startsWith("db.") && host.endsWith(".supabase.co")
+          ? "direct"
+          : "unknown",
+      port_seen: port === "5432" || port === "6543" ? port : "unknown",
+      has_project_ref_in_user: username.includes("pvxoqpskkpfpuxhunmwm"),
+    };
+  } catch {
+    return {
+      host_type: "unknown",
+      port_seen: "unknown",
+      has_project_ref_in_user: false,
+    };
+  }
+}
+
 export function sendError(res, error) {
   sendJson(res, 503, {
     status: "degraded",
@@ -67,6 +96,7 @@ export function sendError(res, error) {
     error_code: error?.code || null,
     error_name: error?.name || null,
     error_message: safeDiagnosticMessage(error),
+    ...databaseUrlDiagnostics(),
     sanitized_error: safeErrorMessage(error),
     version: "1.0.0",
   });
