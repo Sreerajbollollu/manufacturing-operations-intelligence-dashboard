@@ -6,6 +6,7 @@ const NAV = [
   { id: "quality",   label: "Quality Analytics",       icon: "query_stats" },
   { id: "balance",   label: "Line Balancing",          icon: "account_tree" },
   { id: "capacity",  label: "Capacity Planning",       icon: "factory" },
+  { id: "actions",   label: "Action Center",           icon: "assignment_late" },
 ];
 
 function Icon({ name, size = 18, style }) {

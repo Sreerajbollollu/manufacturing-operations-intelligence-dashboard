@@ -48,6 +48,7 @@ export const fetchDowntime = (params) => apiFetch("/api/kpi/downtime", params);
 export const fetchCapacity = (params) => apiFetch("/api/kpi/capacity", params);
 export const fetchShifts = (params) => apiFetch("/api/kpi/shifts", params);
 export const fetchHourly = (params) => apiFetch("/api/kpi/hourly", params);
+export const fetchRecommendations = (params) => apiFetch("/api/recommendations/actions", params);
 export const fetchRefLines = () => apiFetch("/api/reference/lines");
 export const fetchRefStations = (line_id) => apiFetch("/api/reference/stations", { line_id });
 export const fetchRefShifts = () => apiFetch("/api/reference/shifts");
