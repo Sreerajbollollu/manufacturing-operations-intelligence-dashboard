@@ -24,6 +24,7 @@ export default function App() {
   const [shifts, setShifts] = useState([]);
   const [hourly, setHourly] = useState([]);
   const [recommendations, setRecommendations] = useState(null);
+  const [recommendationsError, setRecommendationsError] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -35,20 +36,18 @@ export default function App() {
       }
 
       try {
-        const [ov, ls, ql, sh, hr, rec] = await Promise.all([
+        const [ov, ls, ql, sh, hr] = await Promise.all([
           fetchOverview(),
           fetchLines(),
           fetchQuality(),
           fetchShifts(),
           fetchHourly({ line_id: 1 }),
-          fetchRecommendations(),
         ]);
         setOverview(ov);
         setLines(ls);
         setQuality(ql);
         setShifts(sh);
         setHourly(hr);
-        setRecommendations(rec);
       } catch (err) {
         console.warn("API unavailable, falling back to demo data:", err.message);
         setOverview(MOCK.overview);
@@ -56,7 +55,15 @@ export default function App() {
         setQuality({ defect_pareto: MOCK.defects, fpy_by_line: [] });
         setShifts(MOCK.shifts);
         setHourly(MOCK.hourly);
-        setRecommendations({ recommendations: [] });
+      }
+
+      try {
+        setRecommendationsError(false);
+        setRecommendations(await fetchRecommendations());
+      } catch (err) {
+        console.warn("Recommendations unavailable:", err.message);
+        setRecommendationsError(true);
+        setRecommendations(null);
       }
     }
 
@@ -69,7 +76,7 @@ export default function App() {
     return () => clearTimeout(t);
   }, [page]);
 
-  const pageProps = { overview, lines, quality, shifts, hourly, recommendations };
+  const pageProps = { overview, lines, quality, shifts, hourly, recommendations, recommendationsError };
 
   return (
     <div style={{ fontFamily: font.body, background: T.bg, color: T.onSurface, minHeight: "100vh", display: "flex", margin: 0, padding: 0 }}>
@@ -87,7 +94,7 @@ export default function App() {
             {page === "quality"   && <QualityAnalytics quality={quality} />}
             {page === "balance"   && <LineBalancing />}
             {page === "capacity"  && <CapacityPlanning />}
-            {page === "actions"   && <ActionCenter recommendations={recommendations} />}
+            {page === "actions"   && <ActionCenter recommendations={recommendations} recommendationsError={recommendationsError} />}
 
             <div style={{ marginTop: 16, paddingTop: 20, borderTop: `1px solid ${T.high}`, textAlign: "center" }}>
               <p style={{ fontSize: 11, fontFamily: font.data, color: T.outline, lineHeight: 1.8 }}>
