@@ -84,10 +84,10 @@ The `backend/` folder remains as reference implementation code, but Vercel deplo
 | GET | `/api/kpi/overview` | Aggregate OEE, FPY, throughput, alert count |
 | GET | `/api/kpi/lines` | Per-line OEE breakdown with A × P × Q components |
 | GET | `/api/kpi/quality` | Defect Pareto + FPY by line |
-| GET | `/api/kpi/downtime` | Downtime summary and reason Pareto |
-| GET | `/api/kpi/capacity` | Capacity utilization by line |
 | GET | `/api/kpi/shifts` | Shift comparison — OEE, downtime incidents, defects |
 | GET | `/api/kpi/hourly?line_id=1` | Hourly output vs. takt target for sparklines |
+| GET | `/api/health` | Sanitized database health check |
+| GET | `/api/debug/db` | Sanitized database connection diagnostics |
 | POST | `/api/optimization/line-balance` | Serverless workload balancer |
 
 Time-window endpoints accept `?days=30`.
@@ -103,7 +103,7 @@ DATABASE_URL=postgresql://USER:ENCODED_PASSWORD@HOST:PORT/DATABASE
 VITE_API_BASE_URL=
 ```
 
-`DATABASE_URL` must be a PostgreSQL URL, not the Supabase frontend URL. Do not commit `.env` files.
+`DATABASE_URL` must be a PostgreSQL URL, not the Supabase frontend URL. Use the Supabase pooler for Vercel. Try the Transaction Pooler on port 6543 first; if it times out, switch to the Session Pooler on port 5432. Do not commit `.env` files.
 
 Vercel build settings:
 
@@ -113,7 +113,7 @@ Output Directory: dist
 Framework Preset: Vite
 ```
 
-The deployed frontend calls same-origin API routes under `frontend/api/`, including `/api/health`, `/api/kpi/overview`, `/api/kpi/lines`, `/api/kpi/quality`, `/api/kpi/shifts`, `/api/kpi/hourly`, and `/api/optimization/line-balance`.
+The deployed frontend calls same-origin API routes under `frontend/api/`, including `/api/health`, `/api/debug/db`, `/api/kpi/overview`, `/api/kpi/lines`, `/api/kpi/quality`, `/api/kpi/shifts`, `/api/kpi/hourly`, and `/api/optimization/line-balance`.
 
 ## Supabase views (for dashboard exploration)
 

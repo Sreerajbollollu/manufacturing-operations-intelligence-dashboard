@@ -1,6 +1,12 @@
 import pg from "pg";
 
 const { Client } = pg;
+const PROJECT_REF = "pvxoqpskkpfpuxhunmwm";
+const QUERY_TIMEOUT_MS = 20_000;
+
+export function hasDatabaseUrl() {
+  return Boolean(process.env.DATABASE_URL);
+}
 
 export function getDatabaseUrl() {
   if (!process.env.DATABASE_URL) {
@@ -12,13 +18,32 @@ export function getDatabaseUrl() {
   return process.env.DATABASE_URL;
 }
 
+function getConnectionString() {
+  const raw = getDatabaseUrl();
+  let url;
+
+  try {
+    url = new URL(raw);
+  } catch {
+    const error = new Error("DATABASE_URL is invalid");
+    error.name = "DatabaseConfigError";
+    throw error;
+  }
+
+  if (!url.searchParams.has("sslmode")) {
+    url.searchParams.set("sslmode", "require");
+  }
+
+  return url.toString();
+}
+
 function createClient() {
   return new Client({
-    connectionString: getDatabaseUrl(),
+    connectionString: getConnectionString(),
     ssl: { rejectUnauthorized: false },
-    connectionTimeoutMillis: 5_000,
-    query_timeout: 15_000,
-    statement_timeout: 15_000,
+    connectionTimeoutMillis: QUERY_TIMEOUT_MS,
+    query_timeout: QUERY_TIMEOUT_MS,
+    statement_timeout: QUERY_TIMEOUT_MS,
   });
 }
 
@@ -32,6 +57,15 @@ export async function query(text, params = []) {
   }
 }
 
+export async function testConnection() {
+  const startedAt = Date.now();
+  const result = await query("SELECT 1 AS ok");
+  return {
+    ok: Number(result.rows?.[0]?.ok) === 1,
+    elapsed_ms: Date.now() - startedAt,
+  };
+}
+
 export function sendJson(res, status, body) {
   res.status(status).json(body);
 }
@@ -43,12 +77,13 @@ export function safeErrorType(error) {
 export function safeErrorMessage(error) {
   const type = safeErrorType(error);
   const code = error?.code;
+  const text = `${type} ${code || ""} ${error?.message || ""}`;
 
-  if (type === "DatabaseConfigError") return "DATABASE_URL is not configured";
-  if (code === "28P01" || /auth|password/i.test(type)) return "database authentication failed";
+  if (type === "DatabaseConfigError") return error?.message || "DATABASE_URL is not configured";
+  if (code === "28P01" || /auth|password/i.test(text)) return "database authentication failed";
   if (code === "3D000") return "database name is invalid";
   if (code === "28000") return "database authorization failed";
-  if (/timeout|connection|network|enotfound|econnrefused/i.test(`${type} ${code || ""}`)) {
+  if (/timeout|connection|network|enotfound|econnrefused|08006/i.test(text)) {
     return "database connection failed";
   }
   return "database unavailable";
@@ -62,7 +97,24 @@ export function safeDiagnosticMessage(error) {
     .slice(0, 80);
 }
 
+function usernameShape(username) {
+  if (!username) return "unknown";
+  if (username === "postgres") return "postgres";
+  if (username.startsWith("postgres.")) return "postgres.project_ref";
+  return "other";
+}
+
 export function databaseUrlDiagnostics() {
+  if (!hasDatabaseUrl()) {
+    return {
+      has_database_url: false,
+      host_type: "unknown",
+      port_seen: "unknown",
+      username_shape: "unknown",
+      has_project_ref_in_user: false,
+    };
+  }
+
   try {
     const url = new URL(getDatabaseUrl());
     const host = url.hostname.toLowerCase();
@@ -70,21 +122,33 @@ export function databaseUrlDiagnostics() {
     const port = url.port || "unknown";
 
     return {
+      has_database_url: true,
       host_type: host.includes("pooler.supabase.com")
         ? "pooler"
         : host.startsWith("db.") && host.endsWith(".supabase.co")
           ? "direct"
           : "unknown",
       port_seen: port === "5432" || port === "6543" ? port : "unknown",
-      has_project_ref_in_user: username.includes("pvxoqpskkpfpuxhunmwm"),
+      username_shape: usernameShape(username),
+      has_project_ref_in_user: username.includes(PROJECT_REF),
     };
   } catch {
     return {
+      has_database_url: true,
       host_type: "unknown",
       port_seen: "unknown",
+      username_shape: "unknown",
       has_project_ref_in_user: false,
     };
   }
+}
+
+export function errorDiagnostics(error) {
+  return {
+    error_code: error?.code || null,
+    error_name: error?.name || null,
+    sanitized_message: safeDiagnosticMessage(error),
+  };
 }
 
 export function sendError(res, error) {
@@ -93,10 +157,8 @@ export function sendError(res, error) {
     db_connected: false,
     error: safeErrorMessage(error),
     error_type: safeErrorType(error),
-    error_code: error?.code || null,
-    error_name: error?.name || null,
-    error_message: safeDiagnosticMessage(error),
     ...databaseUrlDiagnostics(),
+    ...errorDiagnostics(error),
     sanitized_error: safeErrorMessage(error),
     version: "1.0.0",
   });

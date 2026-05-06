@@ -36,3 +36,4 @@ frontend/.env
 
 # Logs
 *.log
+.vercel/
