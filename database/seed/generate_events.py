@@ -1,5 +1,5 @@
 """
-FactoryPulse AI — Seed Data Generator
+Manufacturing Operations Intelligence Dashboard — Seed Data Generator
 Generates 30 days of causally consistent manufacturing data.
 Seed: random.Random(42) for reproducibility.
 """
@@ -315,7 +315,7 @@ def simulate_hour(line_id, shift, hour, day_date, downtime_min_this_hour, is_wee
 
 async def run(db: asyncpg.Connection):
     print("=" * 60)
-    print("FactoryPulse AI — Seed Data Generator")
+    print("Manufacturing Operations Intelligence Dashboard — Seed Data Generator")
     print("=" * 60)
 
     # 30-day window ending today at midnight UTC

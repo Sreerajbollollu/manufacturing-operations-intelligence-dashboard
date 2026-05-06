@@ -89,7 +89,7 @@ export default function App() {
                 PostgreSQL · FastAPI · React · OR-Tools · scikit-learn · Supabase · Vercel · Render
               </p>
               <p style={{ fontSize: 10, fontFamily: font.data, color: T.outlineVar, marginTop: 4 }}>
-                FactoryPulse AI · Portfolio project · OEE computed from SQL, not hardcoded
+                Manufacturing Operations Intelligence Dashboard · Portfolio project · OEE computed from SQL, not hardcoded
               </p>
             </div>
           </div>

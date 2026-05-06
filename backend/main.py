@@ -26,8 +26,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="FactoryPulse AI",
-    description="Manufacturing Operations Intelligence Platform — Foxconn WI Operations Research",
+    title="Manufacturing Operations Intelligence Dashboard",
+    description="Smart Manufacturing Analytics Platform — Foxconn WI Operations Research",
     version="1.0.0",
     lifespan=lifespan,
 )

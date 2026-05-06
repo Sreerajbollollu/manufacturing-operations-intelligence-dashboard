@@ -1,4 +1,4 @@
-# FactoryPulse AI
+# Manufacturing Operations Intelligence Dashboard
 
 Manufacturing Operations Intelligence Platform — full-stack portfolio project targeting Operations Research / Data Analytics roles in high-volume electronics manufacturing.
 

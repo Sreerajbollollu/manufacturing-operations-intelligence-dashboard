@@ -1,5 +1,5 @@
 """
-FactoryPulse AI — SQL Seed Generator
+Manufacturing Operations Intelligence Dashboard — SQL Seed Generator
 Generates INSERT SQL for all fact tables. No DB connection required.
 Run: python3 generate_sql.py > seed_output.sql
 """

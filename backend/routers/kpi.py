@@ -1,5 +1,5 @@
 """
-KPI router — FactoryPulse AI.
+KPI router — Manufacturing Operations Intelligence Dashboard.
 
 OEE proxy disclaimer:
   This is a project-level proxy, NOT a certified plant OEE calculation.

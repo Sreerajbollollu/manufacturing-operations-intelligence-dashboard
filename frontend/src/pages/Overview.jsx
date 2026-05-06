@@ -20,7 +20,8 @@ function SectionHeader({ title, subtitle, icon, right }) {
   );
 }
 
-export default function Overview({ overview, hourly, lines, defects, shifts }) {
+export default function Overview({ overview, hourly, lines, quality, shifts }) {
+  const defects = quality?.defect_pareto;
   if (!overview) return <div style={{ color: T.outline, fontFamily: font.data, padding: 40 }}>Loading overview…</div>;
 
   const firstLine = lines?.[0] || {};
@@ -78,7 +79,7 @@ export default function Overview({ overview, hourly, lines, defects, shifts }) {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ borderBottom: `1px solid ${T.high}` }}>
-                {["Shift", "OEE", "Output", "Downtime", "Defects"].map((h, i) => (
+                {["Shift", "FPY", "Output", "Downtime", "Defects"].map((h, i) => (
                   <th key={h} style={{ padding: "10px 16px", textAlign: i > 0 ? "right" : "left", fontFamily: font.body, fontSize: 10, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: T.outline }}>{h}</th>
                 ))}
               </tr>
@@ -89,7 +90,7 @@ export default function Overview({ overview, hourly, lines, defects, shifts }) {
                   onMouseEnter={(e) => e.currentTarget.style.background = T.container}
                   onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
                   <td style={{ padding: "10px 16px", fontFamily: font.data, fontSize: 13, color: T.onSurface }}>{s.shift_name}</td>
-                  <td style={{ padding: "10px 16px", textAlign: "right", fontFamily: font.data, fontSize: 13, color: oeeColor(s.oee, T) }}>{fmtPct(s.oee)}</td>
+                  <td style={{ padding: "10px 16px", textAlign: "right", fontFamily: font.data, fontSize: 13, color: oeeColor(s.fpy, T) }}>{fmtPct(s.fpy)}</td>
                   <td style={{ padding: "10px 16px", textAlign: "right", fontFamily: font.data, fontSize: 13, color: T.onSurfaceVar }}>{fmtNum(s.throughput)}</td>
                   <td style={{ padding: "10px 16px", textAlign: "right", fontFamily: font.data, fontSize: 13, color: T.outline }}>{fmtMin(s.downtime_min)}</td>
                   <td style={{ padding: "10px 16px", textAlign: "right", fontFamily: font.data, fontSize: 13, color: T.outline }}>{s.total_defects}</td>

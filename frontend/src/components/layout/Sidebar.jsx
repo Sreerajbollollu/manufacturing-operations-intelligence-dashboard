@@ -33,7 +33,10 @@ export default function Sidebar({ page, setPage }) {
       display: "flex", flexDirection: "column", zIndex: 50,
     }}>
       <div style={{ height: 60, display: "flex", alignItems: "center", padding: "0 24px", borderBottom: `1px solid ${T.high}` }}>
-        <span style={{ fontSize: 15, fontWeight: 900, letterSpacing: "-0.04em", color: T.onSurface, fontFamily: font.body }}>FactoryPulse AI</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "-0.01em", color: T.onSurface, fontFamily: font.body, lineHeight: 1.2 }}>Manufacturing Operations</span>
+          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: "-0.01em", color: T.primaryContainer, fontFamily: font.body, lineHeight: 1.2 }}>Intelligence Dashboard</span>
+        </div>
       </div>
       <div style={{ flex: 1, padding: "16px 0", display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
         {NAV.map((n) => (

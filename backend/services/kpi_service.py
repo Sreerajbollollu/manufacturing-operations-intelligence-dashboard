@@ -1,5 +1,5 @@
 """
-KPI service helpers — FactoryPulse AI.
+KPI service helpers — Manufacturing Operations Intelligence Dashboard.
 
 OEE proxy formula (project-level, not certified plant OEE):
   Availability  = operating_minutes / planned_minutes
