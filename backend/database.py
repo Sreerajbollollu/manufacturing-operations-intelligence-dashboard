@@ -4,6 +4,13 @@ from config import DATABASE_URL
 
 _pool: asyncpg.Pool | None = None
 
+POOL_KWARGS = {
+    "min_size": 2,
+    "max_size": 10,
+    "ssl": "require",
+    "statement_cache_size": 0,
+}
+
 
 class DatabaseConfigError(RuntimeError):
     pass
@@ -14,7 +21,7 @@ async def get_pool() -> asyncpg.Pool:
     if not DATABASE_URL:
         raise DatabaseConfigError("DATABASE_URL is not configured")
     if _pool is None:
-        _pool = await asyncpg.create_pool(DATABASE_URL, min_size=2, max_size=10)
+        _pool = await asyncpg.create_pool(DATABASE_URL, **POOL_KWARGS)
     return _pool
 
 

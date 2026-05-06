@@ -9,9 +9,22 @@ from database import DatabaseConfigError, get_pool, close_pool
 from routers import kpi, reference, optimization
 
 
+def _safe_db_error_type(exc: Exception) -> str:
+    return exc.__class__.__name__
+
+
 def _safe_db_error_message(exc: Exception) -> str:
+    error_type = _safe_db_error_type(exc)
     if isinstance(exc, DatabaseConfigError):
         return "DATABASE_URL is not configured"
+    if "InvalidPassword" in error_type or "Authentication" in error_type:
+        return "database authentication failed"
+    if "InvalidCatalogName" in error_type:
+        return "database name is invalid"
+    if "InvalidAuthorization" in error_type:
+        return "database authorization failed"
+    if "Connection" in error_type or "Timeout" in error_type or "OSError" in error_type:
+        return "database connection failed"
     return "database unavailable"
 
 
@@ -66,13 +79,10 @@ async def health():
     try:
         pool = await get_pool()
         async with pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT COUNT(*) AS lines FROM dim_lines WHERE is_active = true"
-            )
+            await conn.execute("SELECT 1")
         return {
             "status": "ok",
             "db_connected": True,
-            "active_lines": int(row["lines"]),
             "version": "1.0.0",
         }
     except Exception as e:
@@ -80,5 +90,7 @@ async def health():
             "status": "degraded",
             "db_connected": False,
             "error": _safe_db_error_message(e),
+            "error_type": _safe_db_error_type(e),
+            "sanitized_error": _safe_db_error_message(e),
             "version": "1.0.0",
         }
