@@ -50,12 +50,23 @@ export function safeErrorMessage(error) {
   return "database unavailable";
 }
 
+export function safeDiagnosticMessage(error) {
+  return String(error?.message || "")
+    .replace(/postgres(?:ql)?:\/\/\S+/gi, "[redacted-database-url]")
+    .replace(/\b\S+:\S+@\S+\b/g, "[redacted-credentials]")
+    .replace(/\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/gi, "[redacted-host]")
+    .slice(0, 80);
+}
+
 export function sendError(res, error) {
   sendJson(res, 503, {
     status: "degraded",
     db_connected: false,
     error: safeErrorMessage(error),
     error_type: safeErrorType(error),
+    error_code: error?.code || null,
+    error_name: error?.name || null,
+    error_message: safeDiagnosticMessage(error),
     sanitized_error: safeErrorMessage(error),
     version: "1.0.0",
   });
