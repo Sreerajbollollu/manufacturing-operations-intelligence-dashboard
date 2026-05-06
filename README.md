@@ -7,20 +7,20 @@ Manufacturing Operations Intelligence Platform — full-stack portfolio project 
 Real-time OEE (Overall Equipment Effectiveness) dashboard backed by 30 days of causally-consistent production data across 6 lines, 40 stations, 4 shifts, and ~760,000 cycle-time observations.
 
 **Key capabilities:**
-- OEE = Availability × Performance × Quality computed in SQL, served via FastAPI
+- OEE = Availability × Performance × Quality computed in SQL, served via Vercel serverless API routes
 - Defect Pareto analysis with Fibonacci-80 cumulative % detection
 - Bottleneck station identification (avg cycle time > takt time)
 - Shift vs. shift performance benchmarking
-- OR-Tools CP-SAT line-balancing optimizer endpoint
+- Serverless line-balancing optimizer endpoint
 
 ## Stack
 
 | Layer | Tech |
 |-------|------|
 | Database | PostgreSQL 15 (Supabase) |
-| Backend | FastAPI + asyncpg (Python 3.11) |
+| API | Vercel Serverless Functions + pg |
 | Frontend | React 18 + Vite + Recharts |
-| Optimization | Google OR-Tools CP-SAT |
+| Optimization | Serverless line-balancing optimizer |
 | Seed data | Pure-Python generator (`random.Random(42)`) |
 
 ## Database schema
@@ -58,30 +58,24 @@ Planned Time = COUNT(*) production-event rows × 60 min (each row = one hour-slo
 Create local env files from the examples. Do not commit real `.env` files.
 
 ```bash
-cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
-`backend/.env` needs `DATABASE_URL`. `frontend/.env` should point at FastAPI with `VITE_API_BASE_URL=http://localhost:8000`.
+For Vercel-only deployment, set `DATABASE_URL` in Vercel Project Settings. Leave `VITE_API_BASE_URL` empty so the React app calls same-origin routes such as `/api/health` and `/api/kpi/overview`.
 
-### Backend
+Use a PostgreSQL connection string with URL-encoded password characters. For Supabase, prefer the pooler/session connection string for serverless deployment.
 
-```bash
-cd backend
-pip install -r requirements.txt
-
-uvicorn main:app --reload
-# API docs: http://localhost:8000/docs
-```
-
-### Frontend
+### Local frontend build
 
 ```bash
 cd frontend
 npm install
-npm run dev
-# App: http://localhost:5173
+npm run build
 ```
+
+### Optional local FastAPI reference
+
+The `backend/` folder remains as reference implementation code, but Vercel deployment does not depend on Render, Railway, or a separate FastAPI service.
 
 ## API endpoints
 
@@ -94,10 +88,32 @@ npm run dev
 | GET | `/api/kpi/capacity` | Capacity utilization by line |
 | GET | `/api/kpi/shifts` | Shift comparison — OEE, downtime incidents, defects |
 | GET | `/api/kpi/hourly?line_id=1` | Hourly output vs. takt target for sparklines |
-| POST | `/api/optimization/line-balance` | OR-Tools CP-SAT workload balancer |
-| GET | `/api/reference/lines` | Dimension data |
+| POST | `/api/optimization/line-balance` | Serverless workload balancer |
 
-All time-window endpoints accept `?days=30` and optional `?shift_id=`.
+Time-window endpoints accept `?days=30`.
+
+## Vercel-only deployment
+
+Set the Vercel project root to `frontend/`.
+
+Required Vercel environment variables:
+
+```bash
+DATABASE_URL=postgresql://USER:ENCODED_PASSWORD@HOST:PORT/DATABASE
+VITE_API_BASE_URL=
+```
+
+`DATABASE_URL` must be a PostgreSQL URL, not the Supabase frontend URL. Do not commit `.env` files.
+
+Vercel build settings:
+
+```bash
+Build Command: npm run build
+Output Directory: dist
+Framework Preset: Vite
+```
+
+The deployed frontend calls same-origin API routes under `frontend/api/`, including `/api/health`, `/api/kpi/overview`, `/api/kpi/lines`, `/api/kpi/quality`, `/api/kpi/shifts`, `/api/kpi/hourly`, and `/api/optimization/line-balance`.
 
 ## Supabase views (for dashboard exploration)
 
@@ -141,6 +157,10 @@ factorypulse-ai/
 │   └── seed/
 │       └── generate_sql.py  Reproducible seed generator (seed=42)
 └── frontend/
+    ├── api/                 Vercel serverless API routes
+    │   ├── health.js
+    │   ├── kpi/             Overview, lines, quality, shifts, hourly
+    │   └── optimization/    Line-balance endpoint
     └── src/
         ├── App.jsx
         ├── api/client.js

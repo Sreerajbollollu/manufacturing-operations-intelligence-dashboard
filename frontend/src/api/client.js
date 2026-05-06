@@ -1,7 +1,12 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+
+function apiUrl(path) {
+  if (!API_BASE) return path;
+  return `${API_BASE}${path}`;
+}
 
 async function apiFetch(path, params = {}) {
-  const url = new URL(`${API_BASE}${path}`);
+  const url = new URL(apiUrl(path), window.location.origin);
   Object.entries(params).forEach(([k, v]) => {
     if (v != null) url.searchParams.set(k, v);
   });
@@ -46,10 +51,10 @@ export const fetchHourly = (params) => apiFetch("/api/kpi/hourly", params);
 export const fetchRefLines = () => apiFetch("/api/reference/lines");
 export const fetchRefStations = (line_id) => apiFetch("/api/reference/stations", { line_id });
 export const fetchRefShifts = () => apiFetch("/api/reference/shifts");
-export const fetchHealth = () => apiFetch("/health");
+export const fetchHealth = () => apiFetch("/api/health");
 
 export async function optimizeLineBalance(payload) {
-  const res = await fetch(`${API_BASE}/api/optimization/line-balance`, {
+  const res = await fetch(apiUrl("/api/optimization/line-balance"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
