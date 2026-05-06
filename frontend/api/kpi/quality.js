@@ -1,4 +1,4 @@
-import { getWindow, optionalInt, query, sendError, sendJson } from "../_lib/db.js";
+import { getWindow, optionalInt, queryWithClient, sendError, sendJson, withClient } from "../_lib/db.js";
 import { intValue, numberValue } from "../_lib/kpi.js";
 
 export default async function handler(req, res) {
@@ -57,10 +57,10 @@ export default async function handler(req, res) {
   `;
 
   try {
-    const [paretoResult, fpyResult] = await Promise.all([
-      query(paretoSql, params),
-      query(fpySql, params),
-    ]);
+    const { paretoResult, fpyResult } = await withClient(async (client) => ({
+      paretoResult: await queryWithClient(client, paretoSql, params),
+      fpyResult: await queryWithClient(client, fpySql, params),
+    }));
 
     return sendJson(res, 200, {
       defect_pareto: paretoResult.rows.map((row) => ({

@@ -1,4 +1,4 @@
-import { getWindow, query, sendError, sendJson } from "../_lib/db.js";
+import { getWindow, queryWithClient, sendError, sendJson, withClient } from "../_lib/db.js";
 import {
   DOWNTIME_SUMMARY_SQL,
   OVERVIEW_LINE_SQL,
@@ -17,11 +17,11 @@ export default async function handler(req, res) {
   const { days, start, end } = getWindow(req.query.days);
 
   try {
-    const [lineResult, qualityResult, downtimeResult] = await Promise.all([
-      query(OVERVIEW_LINE_SQL, [start, end]),
-      query(QUALITY_SUMMARY_SQL, [start, end]),
-      query(DOWNTIME_SUMMARY_SQL, [start, end]),
-    ]);
+    const { lineResult, qualityResult, downtimeResult } = await withClient(async (client) => ({
+      lineResult: await queryWithClient(client, OVERVIEW_LINE_SQL, [start, end]),
+      qualityResult: await queryWithClient(client, QUALITY_SUMMARY_SQL, [start, end]),
+      downtimeResult: await queryWithClient(client, DOWNTIME_SUMMARY_SQL, [start, end]),
+    }));
 
     const lineRows = lineResult.rows;
     const qualityRow = qualityResult.rows[0] || {};

@@ -50,14 +50,22 @@ function createClient() {
   });
 }
 
-export async function query(text, params = []) {
+export function queryWithClient(client, text, params = []) {
+  return client.query({ text, values: params });
+}
+
+export async function withClient(callback) {
   const client = createClient();
   await client.connect();
   try {
-    return await client.query({ text, values: params });
+    return await callback(client);
   } finally {
     await client.end().catch(() => {});
   }
+}
+
+export async function query(text, params = []) {
+  return withClient((client) => queryWithClient(client, text, params));
 }
 
 export async function testConnection() {
