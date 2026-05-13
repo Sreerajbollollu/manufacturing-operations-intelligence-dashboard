@@ -115,6 +115,10 @@ Framework Preset: Vite
 
 The deployed frontend calls same-origin API routes under `frontend/api/`, including `/api/health`, `/api/debug/db`, `/api/kpi/overview`, `/api/kpi/lines`, `/api/kpi/quality`, `/api/kpi/shifts`, `/api/kpi/hourly`, and `/api/optimization/line-balance`.
 
+## Security
+
+Supabase RLS is enabled on public application tables, and direct `anon` / `authenticated` table access is intentionally not granted. Browser clients use Vercel serverless API routes instead of querying Supabase directly. See [SECURITY.md](SECURITY.md) for the expected RLS posture and Advisor note.
+
 ## Supabase views (for dashboard exploration)
 
 ```sql
