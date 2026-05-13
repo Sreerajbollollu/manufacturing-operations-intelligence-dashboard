@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { T, font } from "./utils/tokens";
 import { fetchOverview, fetchLines, fetchQuality, fetchShifts, fetchHourly, fetchHealth, fetchRecommendations } from "./api/client";
 import { generateData } from "./data/mockData";
@@ -123,6 +124,7 @@ export default function App() {
         input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%}
         table{border-spacing:0}
       `}</style>
+      <Analytics />
     </div>
   );
 }
