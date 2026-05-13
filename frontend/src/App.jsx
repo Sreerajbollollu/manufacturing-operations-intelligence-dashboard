@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { T, font } from "./utils/tokens";
 import { fetchOverview, fetchLines, fetchQuality, fetchShifts, fetchHourly, fetchHealth, fetchRecommendations } from "./api/client";
 import { generateData } from "./data/mockData";
@@ -80,6 +81,7 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: font.body, background: T.bg, color: T.onSurface, minHeight: "100vh", display: "flex", margin: 0, padding: 0 }}>
+      <Analytics />
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
       <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
